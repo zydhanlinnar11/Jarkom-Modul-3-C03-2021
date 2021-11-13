@@ -57,7 +57,7 @@ service isc-dhcp-relay start
 ```
 * Pasang DHCP Relay ```/etc/default/isc-dhcp-relay```
 ```
-SERVERS="192.185.2.4"
+SERVERS="192.168.2.4"
 INTERFACES="eth1 eth2 eth3"
 OPTIONS=
 ```
@@ -70,11 +70,11 @@ Client yang melalui Switch1 mendapatkan range IP dari [prefix IP].1.20 - [prefix
 
 * Konfigurasi IP Range DHCP untuk switch 1
 ```
-subnet 10.7.1.0 netmask 255.255.255.0 {
-    range 10.7.1.20 10.7.1.99;
-    range 10.7.1.150 10.7.1.169;
-    option routers 10.7.1.1;
-    option broadcast-address 10.7.1.255;
+subnet  192.168.1.0 netmask 255.255.255.0 {
+    range 192.168.1.20  192.168.1.99;
+    range  192.168.1.150 1 192.168.1.169;
+    option routers  192.168.1.1;
+    option broadcast-address  192.168.1.255;
 }
 ```
 ### Nomor 4
@@ -85,10 +85,10 @@ Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.30 - [prefix
 
 * Konfigurasi IP Range DHCP untuk switch 3
 ```
-subnet 10.7.3.0 netmask 255.255.255.0 {
-    range 10.7.3.30 10.7.3.50;
-    option routers 10.7.3.1;
-    option broadcast-address 10.7.3.255;
+subnet 192.168.3.0 netmask 255.255.255.0 {
+    range  192.168.3.30  192.168.3.50;
+    option routers  192.168.3.1;
+    option broadcast-address  192.168.3.255;
 }
 ```
 
