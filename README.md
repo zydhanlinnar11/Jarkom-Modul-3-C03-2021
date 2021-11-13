@@ -20,12 +20,47 @@ Luffy bersama Zoro berencana membuat peta tersebut dengan kriteria EniesLobby se
 
 #### Jawab:
 
+* Setup DNS
+```
+apt-get update
+apt-get install bind9 -y
+service bind9 start
+```
+* Setup DHCP Server
+```
+apt-get update
+apt-get install isc-dhcp-server -y
+```
+* DHCP Server interface pada ```/etc/default/isc-dhcp-server```
+```
+INTERFACES="eth0"
+service isc-dhcp-server start
+```
+* Setup Proxy Server
+```
+apt-get update
+apt-get install squid -y
+service squid start
+```
 ### Nomor 2
 
 dan Foosha sebagai DHCP Relay
 
 #### Jawab:
 
+Foosha sebagai DHCP Relay
+* Setup DHCP Realy
+```
+apt-get update
+apt-get install isc-dhcp-relay -y
+service isc-dhcp-relay start
+```
+* Pasang DHCP Relay ```/etc/default/isc-dhcp-relay```
+```
+SERVERS="192.185.2.4"
+INTERFACES="eth1 eth2 eth3"
+OPTIONS=
+```
 ### Nomor 3
 
 Semua client yang ada HARUS menggunakan konfigurasi IP dari DHCP Server.
@@ -33,11 +68,29 @@ Client yang melalui Switch1 mendapatkan range IP dari [prefix IP].1.20 - [prefix
 
 #### Jawab:
 
+* Konfigurasi IP Range DHCP untuk switch 1
+```
+subnet 10.7.1.0 netmask 255.255.255.0 {
+    range 10.7.1.20 10.7.1.99;
+    range 10.7.1.150 10.7.1.169;
+    option routers 10.7.1.1;
+    option broadcast-address 10.7.1.255;
+}
+```
 ### Nomor 4
 
 Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.30 - [prefix IP].3.50
 
 #### Jawab:
+
+* Konfigurasi IP Range DHCP untuk switch 3
+```
+subnet 10.7.3.0 netmask 255.255.255.0 {
+    range 10.7.3.30 10.7.3.50;
+    option routers 10.7.3.1;
+    option broadcast-address 10.7.3.255;
+}
+```
 
 ### Nomor 5
 
