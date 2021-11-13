@@ -177,11 +177,72 @@ Loguetown digunakan sebagai client Proxy agar transaksi jual beli dapat terjamin
 
 #### Jawab:
 
+Pada EniesLobby, buat DNS zone baru pada `/etc/bind/named.conf.local` yang berisi:
+
+```conf
+zone "jualbelikapal.c03.com" {
+  type master;
+  file "/etc/bind/jarkom/jualbelikapal.c03.com";
+};
+```
+
+Setelah itu buat file `/etc/bind/jarkom/jualbelikapal.c03.com` yang berisi:
+
+```text
+$TTL 604800
+@ IN SOA jualbelikapal.c03.com. root.jualbelikapal.c03.com. (
+                20211108 ; Serial
+                604800 ; Refresh
+                86400 ; Retry
+                2419200 ; Expire
+                604800 ) ; Negative Cache TTL
+;
+@ IN NS jualbelikapal.c03.com.
+@ IN A 192.185.2.3
+@ IN AAAA ::1
+www IN CNAME jualbelikapal.c03.com.
+```
+
+Pada Water7, ganti isi `/etc/squid/squid.conf` dengan:
+
+```conf
+http_port 5000
+visible_hostname jualbelikapal.c03.com
+http_access allow all
+```
+
+Lalu restart squid
+
+```bash
+service squid restart
+```
+
 ### Nomor 9
 
 Agar transaksi jual beli lebih aman dan pengguna website ada dua orang, proxy dipasang autentikasi user proxy dengan enkripsi MD5 dengan dua username, yaitu luffybelikapalyyy dengan password luffy_yyy dan zorobelikapalyyy dengan password zoro_yyy
 
 #### Jawab:
+
+Pada Water7, eksekusi perintah dibawah untuk membuat password
+
+```bash
+htpasswd -c -m -b /etc/squid/passwd luffybelikapalc03 luffy_c03
+htpasswd -m -b /etc/squid/passwd zorobelikapalc03 zoro_c03
+```
+
+Berikutnya, hapus `http_access allow all` pada `/etc/squid/squid.conf` dan tambahkan potongan konfigurasi berikut:
+
+```text
+auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwd
+auth_param basic children 5
+auth_param basic realm Proxy
+auth_param basic credentialsttl 2 hours
+auth_param basic casesensitive on
+acl USERS proxy_auth REQUIRED
+http_access allow USERS
+
+http_access deny all
+```
 
 ### Nomor 10
 
@@ -189,11 +250,45 @@ Transaksi jual beli tidak dilakukan setiap hari, oleh karena itu akses internet 
 
 #### Jawab:
 
+Pada Water7, buat file `/etc/squid/acl.conf` dan isikan potongan teks berikut:
+
+```text
+acl time1 time MTWH 07:00-11:00
+acl time2 time TWHF 17:00-24:00
+acl time3 time WHFA 00:00-03:00
+```
+
+Berikutnya, tambahkan `include /etc/squid/acl.conf` pada baris pertama `/etc/squid/squid.conf` dan ganti `http_access allow USERS` dengan:
+
+```text
+http_access allow time1 USERS
+http_access allow time2 USERS
+http_access allow time3 USERS
+```
+
+![Akses diblokir](https://media.discordapp.net/attachments/769183322147389460/909068607068192788/unknown.png)
+
 ### Nomor 11
 
 Agar transaksi bisa lebih fokus berjalan, maka dilakukan redirect website agar mudah mengingat website transaksi jual beli kapal. Setiap mengakses google.com, akan diredirect menuju super.franky.yyy.com dengan website yang sama pada soal shift modul 2. Web server super.franky.yyy.com berada pada node Skypie
 
 #### Jawab:
+
+Pada Water7, tambahkan potongan konfigurasi berikut pada `/etc/squid/acl.conf`:
+
+```text
+acl lan src 192.185.0.0/16
+acl badsites dstdomain .google.com
+```
+
+Berikutnya tambahkan potongan berikut setelah `http_port 5000` pada `/etc/squid/squid.conf`
+
+```text
+deny_info http://super.franky.c03.com lan
+http_reply_access deny badsites lan
+```
+
+**Note:** Deployment mengikuti modul sebelumnya sehingga tidak perlu dijelaskan mendetail
 
 ### Nomor 12
 
@@ -201,10 +296,29 @@ Saatnya berlayar! Luffy dan Zoro akhirnya memutuskan untuk berlayar untuk mencar
 
 #### Jawab:
 
+Pada Water7, tambahkan potongan konfigurasi berikut pada `/etc/squid/squid.conf` sebelum `http_access deny all`:
+
+```text
+acl multimedia url_regex -i \.png$ \.jpg$
+acl bar proxy_auth luffybelikapalc03
+
+delay_pools 1
+delay_class 1 1
+delay_parameters 1 1250/1250
+delay_access 1 allow bar multimedia
+delay_access 1 deny all
+```
+
+![Kecepatan dibatasi 10 kbps / 1.25 KBps](https://media.discordapp.net/attachments/769183322147389460/909068106364755988/unknown.png)
+
 ### Nomor 13
 
 Sedangkan, Zoro yang sangat bersemangat untuk mencari harta karun, sehingga kecepatan kapal Zoro tidak dibatasi ketika sudah mendapatkan harta yang diinginkannya
 
 #### Jawab:
+
+Tidak perlu menambahkan apapun dimanapun.
+
+![Pengunduhan sangat cepat](https://media.discordapp.net/attachments/769183322147389460/909068426352402442/unknown.png)
 
 ## Kendala
